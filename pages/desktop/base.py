@@ -18,7 +18,26 @@ class Base(Page):
         from browserid import BrowserID
         pop_up = BrowserID(self.selenium, self.timeout)
         pop_up.sign_in(credentials['email'], credentials['password'])
-        WebDriverWait(self.selenium, self.timeout).until(lambda s: self.header.is_user_logged_in)
+        WebDriverWait(self.selenium, self.timeout).until(lambda s: self.header.username == credentials['email'])
+
+    def write_cookie_to_file(self):
+        data = self.selenium.get_cookies()
+        stream = file('/home/florinstrugariu/webqa/Marketplace/Bebe/marketplace-tests/tests/desktop/cookie.yaml', 'w')
+        import yaml
+        yaml.dump(data, stream)
+
+    def read_cookie_from_file(self):
+        stream = file('/home/florinstrugariu/webqa/Marketplace/Bebe/marketplace-tests/tests/desktop/cookie.yaml', 'r')
+        import yaml
+        data =  yaml.load(stream)
+        
+        for cookie in data:
+            print self.selenium.current_url
+            print cookie['domain']
+            if cookie['domain'] == '.marketplace-dev.allizom.org':
+                cookie['domain'] = 'marketplace-dev.allizom.org'
+            self.selenium.add_cookie(cookie)
+
 
     @property
     def header(self):
@@ -27,18 +46,18 @@ class Base(Page):
     class HeaderRegion(Page):
 
         #Not LoggedIn
-        _login_locator = (By.CSS_SELECTOR, "li.account > a.browserid-login")
+        _login_locator = (By.CSS_SELECTOR, "a.browserid")
 
         #LoggedIn
-        _account_controller_locator = (By.CSS_SELECTOR, "#aux-nav .account a.user")
+        _account_controller_locator = (By.CSS_SELECTOR, "#site-footer > a:nth-child(1)")
         _logout_locator = (By.CSS_SELECTOR, "li.nomenu.logout > a")
 
         def click_login(self):
             self.selenium.find_element(*self._login_locator).click()
 
         @property
-        def is_user_logged_in(self):
-            return self.is_element_visible(*self._account_controller_locator)
+        def username(self):
+            return self.selenium.find_element(*self._account_controller_locator).text
 
         def click_logout(self):
             self.selenium.find_element(*self._logout_locator).click()

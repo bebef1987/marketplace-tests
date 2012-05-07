@@ -18,8 +18,12 @@ class TestAccounts:
         home_page.go_to_homepage()
         home_page.login()
 
-        Assert.true(home_page.is_the_current_page)
-        Assert.true(home_page.header.is_user_logged_in)
+        home_page.write_cookie_to_file()
 
-        home_page.header.click_logout()
-        Assert.false(home_page.header.is_user_logged_in)
+    @pytest.mark.nondestructive
+    def test_user_can_login_and_logout(self, mozwebqa):
+        home_page = Home(mozwebqa)
+        home_page.go_to_homepage()
+        home_page.read_cookie_from_file()
+        home_page.go_to_homepage()
+
