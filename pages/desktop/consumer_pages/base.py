@@ -26,6 +26,21 @@ class Base(Page):
     def footer(self):
         return self.FooterRegion(self.testsetup)
 
+    @property
+    def header(self):
+        return self.HeaderRegion(self.testsetup)
+
+    class HeaderRegion(Page):
+
+        _search_locator = (By.ID, "search-q")
+
+        def search(self, search_term):
+            search_field = self.selenium.find_element(*self._search_locator)
+            search_field.send_keys(search_term)
+            search_field.submit()
+            from pages.desktop.consumer_pages.search import Search
+            return Search(self.testsetup, search_term)
+
     class FooterRegion(Page):
 
         _account_controller_locator = (By.CSS_SELECTOR, "#site-footer > a:nth-child(1)")
