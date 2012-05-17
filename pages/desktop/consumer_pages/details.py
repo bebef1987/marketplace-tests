@@ -7,7 +7,6 @@
 from pages.page import Page
 from pages.desktop.consumer_pages.base import Base
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common import by
 
 
 class Details(Base):
@@ -17,6 +16,7 @@ class Details(Base):
     """
 
     _purchase_locator = (By.CSS_SELECTOR, "section.product-details > div.actions > a.premium")
+    _install_purchased_locator = (By.CSS_SELECTOR, "section.product-details > div.actions > a.premium.purchased.installing")
 
     def __init__(self, testsetup, app_name=False):
         Base.__init__(self, testsetup)
@@ -26,6 +26,9 @@ class Details(Base):
     def click_purchase(self):
         self.selenium.find_element(*self._purchase_locator).click()
         return self.PreAproval(self.testsetup)
+
+    def is_app_installing(self):
+        return self.is_element_visible(*self._install_purchased_locator)
 
     class PreAproval(Page):
         _root_locator = (By.ID, 'pay')
@@ -37,7 +40,7 @@ class Details(Base):
             self._root_element = self.selenium.find_element(*self._root_locator)
 
         def click_one_time_payment(self):
-            self._root_element.find_element(*self._one_time_payment_locator).click()
+            self.selenium.find_element(*self._one_time_payment_locator).click()
 
             from pages.desktop.consumer_pages.paypall_frame import PayPalFrame
             return PayPalFrame(self.testsetup)

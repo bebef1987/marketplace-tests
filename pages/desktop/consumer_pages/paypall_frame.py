@@ -8,6 +8,7 @@
 from pages.page import Page
 
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
 
 
 class PayPalFrame(Page):
@@ -20,9 +21,15 @@ class PayPalFrame(Page):
         self.selenium.switch_to_frame(self._iframe_id)
 
     def login_to_paypal(self, user="sandbox"):
+
+        WebDriverWait(self.selenium, self.timeout).until(lambda s: self.wait_to_load)
+
         self.selenium.find_element(*self._paypal_login_button).click()
 
         from pages.desktop.consumer_pages.paypall_popup import PayPalPopup
         pop_up = PayPalPopup(self.testsetup)
         pop_up.login_paypal(user)
         return PayPalPopup(self.testsetup)
+
+    def wait_to_load(self):
+        return self.is_element_visible(*self._paypal_login_button)

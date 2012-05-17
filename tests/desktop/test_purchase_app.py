@@ -7,10 +7,11 @@
 
 from unittestzero import Assert
 from pages.desktop.consumer_pages.home import Home
-import time
 
 
 class TestPurchaseApp:
+
+    _app_name = 'Campfire'
 
     def test_that_purchasess_an_app_without_pre_auth(self, mozwebqa):
         home = Home(mozwebqa)
@@ -20,7 +21,7 @@ class TestPurchaseApp:
 
         Assert.true(home.is_the_current_page)
 
-        search = home.header.search('Checkers')
+        search = home.header.search(self._app_name)
         Assert.true(search.is_the_current_page)
 
         details = search.results[0].clcik_name()
@@ -34,4 +35,32 @@ class TestPurchaseApp:
         paypall_popup.click_pay()
         paypall_popup.close_paypal_popup()
 
-        time.sleep(200)
+        Assert.true(details.is_app_installing())
+
+        self.request_refund_procedure(mozwebqa, self._app_name)
+
+    def request_refund_procedure(self, mozwebqa, app_name):
+        home = Home(mozwebqa)
+        home.go_to_homepage()
+
+        if not home.footer.is_user_logged_in:
+            home.login()
+        Assert.true(home.is_the_current_page)
+        Assert.true(home.footer.is_user_logged_in)
+
+        account_history = home.footer.click_account_history()
+        purchesed_apps = account_history.purchesed_apps
+
+        stop = True
+        idx = 0
+        while stop:
+            if purchesed_apps[idx].name == app_name:
+                app_support = purchesed_apps[idx].click_request_support()
+
+                request_refund = app_support.click_request_refund()
+                account_history = request_refund.click_continue()
+                stop = False
+            else:
+                idx = idx + 1
+
+        Assert.equal(account_history.succsessful_notification_text, "Refund is being processed.")
