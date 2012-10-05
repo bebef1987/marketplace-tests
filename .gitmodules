@@ -1,3 +1,6 @@
 [submodule "browserid"]
 	path = browserid
 	url = git://github.com/mozilla/bidpom.git
+[submodule "marketplace-api"]
+	path = marketplace-api
+	url = https://github.com/mozilla/Marketplace.Python.git
