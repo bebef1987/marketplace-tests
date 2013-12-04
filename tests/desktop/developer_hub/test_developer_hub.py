@@ -32,12 +32,12 @@ class TestDeveloperHub(BaseTest):
         in a previous app submit"""
         manifest_validation_form = dev_agreement.click_continue()
 
-        #select device type
+        # select device type
         for device in app['device_type']:
             if device[1]:
                 manifest_validation_form.device_type(device[0])
 
-        #select app type
+        # select app type
         manifest_validation_form.app_type(app['app_type'])
 
         # submit the hosted app and validate it
@@ -46,39 +46,42 @@ class TestDeveloperHub(BaseTest):
 
         Assert.true(manifest_validation_form.app_validation_status,
                     msg=manifest_validation_form.app_validation_message)
+        try:
+            app_details = manifest_validation_form.click_continue()
+            Assert.true(app_details.is_the_current_submission_stage, '\n Expected step is: Details \n Actual step is: %s' % app_details.current_step)
 
-        app_details = manifest_validation_form.click_continue()
-        Assert.true(app_details.is_the_current_submission_stage, '\n Expected step is: Details \n Actual step is: %s' % app_details.current_step)
+            # add custom app details for every field
+            app_details.click_change_name()
 
-        # add custom app details for every field
-        app_details.click_change_name()
+            app_details.type_url_end(app['url_end'])
+            app_details.type_description(app['description'])
+            app_details.type_privacy_policy(app['privacy_policy'])
+            app_details.type_homepage(app['homepage'])
+            app_details.type_support_url(app['support_website'])
+            app_details.type_support_email(app['support_email'])
 
-        app_details.type_url_end(app['url_end'])
-        app_details.type_description(app['description'])
-        app_details.type_privacy_policy(app['privacy_policy'])
-        app_details.type_homepage(app['homepage'])
-        app_details.type_support_url(app['support_website'])
-        app_details.type_support_email(app['support_email'])
+            for category in app['categories']:
+                # check/uncheck the checkbox according to the app value
+                app_details.select_categories(*category)
 
-        for category in app['categories']:
-            # check/uncheck the checkbox according to the app value
-            app_details.select_categories(*category)
+            app_details.screenshot_upload(app['screenshot_link'])
 
-        app_details.screenshot_upload(app['screenshot_link'])
+            finished_form = app_details.click_continue()
 
-        finished_form = app_details.click_continue()
+            Assert.true(finished_form.is_the_current_submission_stage, '\n Expected step is: Finished! \n Actual step is: %s' % finished_form.current_step)
 
-        Assert.true(finished_form.is_the_current_submission_stage, '\n Expected step is: Finished! \n Actual step is: %s' % finished_form.current_step)
+            # check that the app submission procedure succeeded
+            Assert.equal('Success! What happens now?', finished_form.success_message)
 
-        # check that the app submission procedure succeeded
-        Assert.equal('Success! What happens now?', finished_form.success_message)
+        except Exception as exception:
+            Assert.fail(exception)
+        finally:
+            # Cleanup app
+            edit_app = finished_form.click_manage_my_app()
+            manage_status = edit_app.click_app_status()
+            delete_popup = manage_status.click_delete_app()
 
-        # Cleanup app
-        edit_app = finished_form.click_manage_my_app()
-        manage_status = edit_app.click_app_status()
-        delete_popup = manage_status.click_delete_app()
-
-        return delete_popup.delete_app()
+            return delete_popup.delete_app()
 
     def test_hosted_paid_app_submission(self, mozwebqa):
         app = MockApplication()
@@ -98,7 +101,7 @@ class TestDeveloperHub(BaseTest):
         # select a premium
         manifest_validation_form.premium_type('paid')
 
-        #select device type
+        # select device type
         for device in app['device_type']:
             if device[1]:
                 manifest_validation_form.device_type(device[0], 'paid')
@@ -108,52 +111,55 @@ class TestDeveloperHub(BaseTest):
         manifest_validation_form.click_validate()
         Assert.true(manifest_validation_form.app_validation_status,
                     msg=manifest_validation_form.app_validation_message)
+        try:
+            app_details = manifest_validation_form.click_continue()
+            Assert.true(app_details.is_the_current_submission_stage, '\n Expected step is: Details \n Actual step is: %s' % app_details.current_step)
 
-        app_details = manifest_validation_form.click_continue()
-        Assert.true(app_details.is_the_current_submission_stage, '\n Expected step is: Details \n Actual step is: %s' % app_details.current_step)
+            # add custom app details for every field
+            app_details.click_change_name()
+            app_details.type_url_end(app['url_end'])
+            app_details.type_description(app['description'])
+            app_details.type_privacy_policy(app['privacy_policy'])
+            app_details.type_homepage(app['homepage'])
+            app_details.type_support_url(app['support_website'])
+            app_details.type_support_email(app['support_email'])
 
-        # add custom app details for every field
-        app_details.click_change_name()
-        app_details.type_url_end(app['url_end'])
-        app_details.type_description(app['description'])
-        app_details.type_privacy_policy(app['privacy_policy'])
-        app_details.type_homepage(app['homepage'])
-        app_details.type_support_url(app['support_website'])
-        app_details.type_support_email(app['support_email'])
+            for category in app['categories']:
+                # check/uncheck the checkbox according to the app value
+                app_details.select_categories(*category)
 
-        for category in app['categories']:
-            # check/uncheck the checkbox according to the app value
-            app_details.select_categories(*category)
+            app_details.screenshot_upload(app['screenshot_link'])
 
-        app_details.screenshot_upload(app['screenshot_link'])
+            finished_form = app_details.click_continue()
 
-        finished_form = app_details.click_continue()
+            Assert.true(finished_form.is_the_current_submission_stage, '\n Expected step is: Finished! \n Actual step is: %s' % finished_form.current_step)
 
-        Assert.true(finished_form.is_the_current_submission_stage, '\n Expected step is: Finished! \n Actual step is: %s' % finished_form.current_step)
+            # check that the app submission procedure succeeded
+            Assert.equal('Success! What happens now?', finished_form.success_message)
 
-        # check that the app submission procedure succeeded
-        Assert.equal('Success! What happens now?', finished_form.success_message)
+            # setup payments
+            payments = finished_form.click_setup_payments()
 
-        # setup payments
-        payments = finished_form.click_setup_payments()
+            # select payment account
+            payments.select_payment_account()
 
-        # select payment account
-        payments.select_payment_account()
+            # setup price tier
+            app_price = '$0.10'
+            payments.select_price(app_price)
 
-        # setup price tier
-        app_price = '$0.10'
-        payments.select_price(app_price)
+            payments.click_payments_save_changes()
+            Assert.true(payments.is_update_notification_visible)
+            Assert.equal(payments.app_price, app_price, '\n Expected price is: %s \n Actual price is: %s' % (app_price, payments.app_price))
 
-        payments.click_payments_save_changes()
-        Assert.true(payments.is_update_notification_visible)
-        Assert.equal(payments.app_price, app_price, '\n Expected price is: %s \n Actual price is: %s' % (app_price, payments.app_price))
+        except Exception as exception:
+            Assert.fail(exception)
+        finally:
+            # Cleanup app
+            edit_app = finished_form.click_manage_my_app()
+            manage_status = edit_app.click_app_status()
+            delete_popup = manage_status.click_delete_app()
 
-        # Cleanup app
-        edit_app = finished_form.click_manage_my_app()
-        manage_status = edit_app.click_app_status()
-        delete_popup = manage_status.click_delete_app()
-
-        return delete_popup.delete_app()
+            return delete_popup.delete_app()
 
     def test_hosted_app_submission(self, mozwebqa):
 
@@ -171,7 +177,7 @@ class TestDeveloperHub(BaseTest):
         in a previous app submit"""
         manifest_validation_form = dev_agreement.click_continue()
 
-        #select device type
+        # select device type
         for device in app['device_type']:
             if device[1]:
                 manifest_validation_form.device_type(device[0])
@@ -181,38 +187,41 @@ class TestDeveloperHub(BaseTest):
         manifest_validation_form.click_validate()
         Assert.true(manifest_validation_form.app_validation_status,
                     msg=manifest_validation_form.app_validation_message)
+        try:
+            app_details = manifest_validation_form.click_continue()
+            Assert.true(app_details.is_the_current_submission_stage, '\n Expected step is: Details \n Actual step is: %s' % app_details.current_step)
 
-        app_details = manifest_validation_form.click_continue()
-        Assert.true(app_details.is_the_current_submission_stage, '\n Expected step is: Details \n Actual step is: %s' % app_details.current_step)
+            # add custom app details for every field
+            app_details.click_change_name()
+            app_details.type_url_end(app['url_end'])
+            app_details.type_description(app['description'])
+            app_details.type_privacy_policy(app['privacy_policy'])
+            app_details.type_homepage(app['homepage'])
+            app_details.type_support_url(app['support_website'])
+            app_details.type_support_email(app['support_email'])
 
-        # add custom app details for every field
-        app_details.click_change_name()
-        app_details.type_url_end(app['url_end'])
-        app_details.type_description(app['description'])
-        app_details.type_privacy_policy(app['privacy_policy'])
-        app_details.type_homepage(app['homepage'])
-        app_details.type_support_url(app['support_website'])
-        app_details.type_support_email(app['support_email'])
+            for category in app['categories']:
+                # check/uncheck the checkbox according to the app value
+                app_details.select_categories(*category)
 
-        for category in app['categories']:
-            # check/uncheck the checkbox according to the app value
-            app_details.select_categories(*category)
+            app_details.screenshot_upload(app['screenshot_link'])
 
-        app_details.screenshot_upload(app['screenshot_link'])
+            finished_form = app_details.click_continue()
 
-        finished_form = app_details.click_continue()
+            Assert.true(finished_form.is_the_current_submission_stage, '\n Expected step is: Finished! \n Actual step is: %s' % finished_form.current_step)
 
-        Assert.true(finished_form.is_the_current_submission_stage, '\n Expected step is: Finished! \n Actual step is: %s' % finished_form.current_step)
+            # check that the app submission procedure succeeded
+            Assert.equal('Success! What happens now?', finished_form.success_message)
 
-        # check that the app submission procedure succeeded
-        Assert.equal('Success! What happens now?', finished_form.success_message)
+        except Exception as exception:
+            Assert.fail(exception)
+        finally:
+            # Cleanup app
+            edit_app = finished_form.click_manage_my_app()
+            manage_status = edit_app.click_app_status()
+            delete_popup = manage_status.click_delete_app()
 
-        # Cleanup app
-        edit_app = finished_form.click_manage_my_app()
-        manage_status = edit_app.click_app_status()
-        delete_popup = manage_status.click_delete_app()
-
-        return delete_popup.delete_app()
+            return delete_popup.delete_app()
 
     def test_that_deletes_app(self, mozwebqa):
         mock_app = MockApplication()  # generate mock app
