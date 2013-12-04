@@ -191,21 +191,21 @@ class Finished(SubmissionProcess):
 
     _precise_current_step_locator = (By.CSS_SELECTOR, '#submission-progress > li.done.current')
     _success_locator = (By.CSS_SELECTOR, '#submit-done > h2')
-    _setup_payments_button_locator = (By.CSS_SELECTOR, '.button.prominent')
+    _manage_my_app_button = (By.CSS_SELECTOR, '.button.prominent[href*="edit"]')
+    _setup_payments_button_locator = (By.CSS_SELECTOR, '.button.prominent[href*="submit"]')
 
     @property
     def success_message(self):
         return self.selenium.find_element(*self._success_locator).text
 
     def click_setup_payments(self):
-        buttons = self.selenium.find_elements(*self._setup_payments_button_locator)
-        for button in buttons:
-            if button.text == 'Set Up Payments':
-                button.click()
-                break
-
+        self.selenium.find_element(*self._setup_payments_button_locator)
         return CompatibilityAndPayments(self.testsetup)
 
+    def click_manage_my_app(self):
+        self.selenium.find_element(*self._manage_my_app_button).click()
+        from pages.desktop.developer_hub.edit_app import EditListing
+        return EditListing(self.testsetup)
 
 class CheckBox(Page):
 
