@@ -26,7 +26,6 @@ class EditListing(Base):
     _name_locator = (By.CSS_SELECTOR, 'div[data-name="name"]')
     _url_end_locator = (By.ID, 'slug_edit')
     _manifest_url_locator = (By.CSS_SELECTOR, '#manifest_url > td')
-    _manage_app_status_locator = (By.CSS_SELECTOR, '.refinements > li > a[href*="status"]')
     _description_locator = (By.CSS_SELECTOR, 'div[data-name="description"]')
     _categories_locator = (By.ID, 'addon-categories-edit')
     _device_types_locator = (By.ID, 'addon-device-types-edit')
@@ -44,11 +43,6 @@ class EditListing(Base):
         # Skip the explicit wait if EditListing is being inherited
         if not isinstance(self, (self.MediaRegion, self.SupportInformationRegion, self.BasicInfoRegion)):
             WebDriverWait(self.selenium, self.timeout).until(lambda s: self.is_element_visible(*self._screenshots_previews_locator))
-
-    def click_app_status(self):
-        self.selenium.find_element(*self._manage_app_status_locator).click()
-        from pages.desktop.developer_hub.manage_status import ManageStatus
-        return ManageStatus(self.testsetup)
 
     def click_edit_basic_info(self):
         self.selenium.find_element(*self._edit_basic_info_locator).click()
